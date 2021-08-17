@@ -2,6 +2,7 @@ import os
 from os import path
 import json
 from enum import Enum
+from typing import Dict
 
 config_path = path.expanduser("~/.brite")
 config_file = path.join(config_path,"brite_config.json")
@@ -41,7 +42,7 @@ def setup_config():
 
     print("Thanks! Everything is configured, you can now use the configs.")
 
-def get_config():
+def get_config() -> Dict[str,str]:
     if not path.exists(config_file):
         setup_config()
     
@@ -53,4 +54,6 @@ def get_config():
     
     with open(config_file,'r') as f:
         config_dict = json.load(f)
+    
+    return config_dict
     
