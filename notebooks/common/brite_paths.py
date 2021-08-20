@@ -43,6 +43,21 @@ class Data:
     def raw_data(self):
         return self._raw_data
 
+    @property
+    def datapoints(self):
+        return len(self._raw_data[0])
+
+    @property
+    def rms(self):
+        return np.sqrt(np.sum(np.power(self._raw_data[1]-np.median(self._raw_data[1]),2))/len(self._raw_data[1]))
+
+    @property
+    def ptp_scatter(self):
+        return np.sqrt(np.sum(np.power(self._raw_data[1][:-1] - self._raw_data[1][1:],2))/len(self._raw_data[1][:-1]))
+
+    def noise(self,num_datapoints = 500):
+        return np.mean(self.to_periodogram().power[-num_datapoints:])
+
     def __str__(self) -> str:
         return self._star.__str__() + " -> " + self._path.split("/")[-1]
 
