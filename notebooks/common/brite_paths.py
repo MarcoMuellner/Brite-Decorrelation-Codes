@@ -15,12 +15,14 @@ default_result_entry = 'all'
 class Data:
     def __init__(self,path : str, star_obj : 'Star') -> None:
         self._path = path
+        self._ave_path = os.path.join(os.path.dirname(path),path.split("/")[-1].replace("ndat",'ave'))
         self._star = star_obj
 
         self._raw_data = np.loadtxt(path).T
-        self._lk_obj = lk.LightCurve(time=Time(self._raw_data[0],format='jd'),flux=self._raw_data[1]*u.mag,flux_err=self._raw_data[2]*u.mag)
+        self._ave_raw_data = np.loadtxt(self._ave_path).T
+        self._lk_obj = lk.LightCurve(time=Time(self._raw_data[0],format='jd'),flux=(self._raw_data[1] - np.mean(self._raw_data[1]))*u.mag,flux_err=self._raw_data[2]*u.mag)
+        self._ave_lk_obj = lk.LightCurve(time=Time(self._ave_raw_data[0],format='jd'),flux=self._ave_raw_data[1]/1000*u.mag,flux_err=self._ave_raw_data[2]/1000*u.mag)
 
-    @property
     def star(self):
         return self._star
     
@@ -69,10 +71,22 @@ class Data:
         self._lk_obj.plot(**kwargs)
 
     def scatter(self,**kwargs):
-        self._lk_obj.scatter(**kwargs)
+        ax = self._lk_obj.scatter(**kwargs,alpha=0.6)
+        self._ave_lk_obj.scatter(**kwargs,c='r',ax=ax,s=10)
 
     def to_periodogram(self,method='lombscargle',**kwargs) -> Periodogram:
         return self._lk_obj.to_periodogram(method,**kwargs)
+
+    def fold(self,period=None,epoch_time=None,epoch_phase=0,wrap_phase=None,normalize_phase=False):
+        return self._lk_obj.fold(period,epoch_time,epoch_phase,wrap_phase,normalize_phase)
+
+    @property
+    def lk(self):
+        return self._lk_obj
+
+    @property
+    def lk_ave(self):
+        return self._ave_lk_obj
 
 class Star:
     def __init__(self,config_dict : Dict[str,str],path : str,field : int) -> None:

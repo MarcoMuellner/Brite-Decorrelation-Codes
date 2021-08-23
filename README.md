@@ -29,3 +29,8 @@ pip install -r requirements.txt
 ```
 
 The requirements file will contain all necessary packages.
+
+# Tutorial
+
+You can find a jupyter notebook in the notebooks folder called *Example.ipynb*. This notebok 
+contains the basic usage of this code, and shows you a rundown on what you can do with it.
