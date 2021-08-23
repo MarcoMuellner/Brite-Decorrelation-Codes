@@ -10,6 +10,7 @@ from astropy.time import Time
 from astropy import units as u
 from astroquery.simbad import Simbad
 
+default_result_entry = 'all'
 
 class Data:
     def __init__(self,path : str, star_obj : 'Star') -> None:
@@ -77,7 +78,9 @@ class Star:
     def __init__(self,config_dict : Dict[str,str],path : str,field : int) -> None:
         self._config_dict = config_dict
         self._path = path
-        self._results = os.listdir(path)
+        self._results = [i for i in os.listdir(path) if os.path.isdir(i) and not i.startswith(".")]
+        if len(self._results) == 0:
+            self._results = [default_result_entry]
         self._field = field
     
     @property
@@ -98,9 +101,12 @@ class Star:
     
     def get_data(self,result_path : str):
         if result_path not in self._results:
-            raise AttributeError(f"Please use one of the following result datasets: {self._results}")
-        
-        used_path = os.path.join(self._path,result_path)
+            raise AttributeError(f"Please use one of the following result datasets:\n {self._results}")
+
+        if result_path == default_result_entry:
+            used_path = self._path
+        else:
+            used_path = os.path.join(self._path,result_path)
         objects = {}
 
         counter = 1
@@ -121,7 +127,7 @@ class Star:
             while(True):
                 str_objects = "\n".join([f'{i}): {objects[i][0]}' for i in objects.keys()])
 
-                object_nr = input(f"Please choose a dataset by entering a number: {str_objects}")
+                object_nr = input(f"Please choose a dataset by entering a number:\n {str_objects}")
                 try:
                     object_nr = int(object_nr)
                 except:
@@ -161,6 +167,10 @@ def load(field : int = None) -> List[Star]:
         raise IOError(f"Path {field_path} doesn't exist!")
     
     star_list = []
+
+    if len([i for i in os.listdir(field_path) if i.startswith("HD")]) == 0:
+        field_path = os.path.join(field_path,'RESULTS')
+
     for i in os.listdir(field_path):
         if not i.startswith("HD"):
             continue
@@ -168,7 +178,7 @@ def load(field : int = None) -> List[Star]:
     
     return star_list
 
-
+load(10)
           
 
 
