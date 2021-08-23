@@ -10,6 +10,8 @@ from astropy.time import Time
 from astropy import units as u
 from astroquery.simbad import Simbad
 
+Simbad.add_votable_fields('otype','sp')
+
 default_result_entry = 'all'
 
 class Data:
