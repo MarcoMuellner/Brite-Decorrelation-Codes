@@ -177,8 +177,6 @@ def load(field : int = None) -> List[Star]:
         star_list.append(Star(config_dict,os.path.join(field_path,i),field))
     
     return star_list
-
-load(10)
           
 
 
