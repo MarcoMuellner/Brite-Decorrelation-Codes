@@ -1,6 +1,9 @@
 from common import *
+import warnings
 
-stars = load(10)
-star = stars[0]
-data = star.get_data(star.results[0])
-config_dict = get_config()
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    stars = load(14)
+    for star in stars:
+        combine_data(star.get_all_data_sets(star.results[0]))
+
