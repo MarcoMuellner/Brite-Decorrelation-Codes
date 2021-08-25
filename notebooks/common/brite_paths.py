@@ -11,7 +11,7 @@ from astropy import units as u
 from astroquery.simbad import Simbad
 import re
 
-Simbad.add_votable_fields('otype', 'sp')
+Simbad.add_votable_fields('otype', 'sp', 'flux(V)')
 
 default_result_entry = 'all'
 
@@ -25,11 +25,19 @@ def combine_data(data_list: List['Data']):
 
     satellites = list(set([i.satellite for i in data_list if not i.combined]))
     for satellite in satellites:
-        sat_data = sorted([i for i in data_list if i.satellite == satellite and not i.combined])
+        files = []
+        sat_data = []
+        for i in data_list:
+            if not (i.satellite == satellite and not i.combined) or i.filename in files:
+                continue
+
+            files.append(i.filename)
+            sat_data.append(i)
+
         if len(sat_data) == 1:
             continue
 
-        filename = f"{sat_data[0].starname}_{sat_data[0].field}_{satellite}_{'_'.join([str(i.setup) for i in sat_data])}_{sat_data[0].dr}"
+        filename = f"{sat_data[0].starname}_{sat_data[0].field}_{satellite}_{'_'.join([str(i.setup) for i in reversed(sat_data)])}_{sat_data[0].dr}"
 
         raw_data = np.hstack([i.raw_data for i in sat_data])
         try:
@@ -47,15 +55,19 @@ def combine_data(data_list: List['Data']):
 class Data:
     def __init__(self, path: str, star_obj: 'Star') -> None:
         self._path = path
-        filename = path.split("/")[-1]
-        self._ave_path = os.path.join(os.path.dirname(path), filename.replace("ndat", 'ave'))
+        self._filename = path.split("/")[-1]
+        self._ave_path = os.path.join(os.path.dirname(path), self._filename.replace("ndat", 'ave'))
 
-        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_]+)_*([A-Za-z]*)', filename)
+        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_-]+)_*([A-Za-z]*)', self._filename)
         self._starname = parser[0][0]
         self._field = parser[0][1]
         self._satellite = parser[0][2]
 
-        nums = parser[0][3].split("_")
+        if "-" in parser[0][3]:
+            nums = parser[0][3].split("-")
+            nums = nums[:-1] + nums[-1][:-1].split("_")
+        else:
+            nums = parser[0][3].split("_")
 
         if len(nums[-1]) == 0:
             nums = nums[:-1]
@@ -64,8 +76,10 @@ class Data:
         self._dr = nums[-1]
 
         if "merged_" in self._path or len(self._setup) != 1:
+            self._setup = [int(i) for i in self._setup]
             self._combined = True
         else:
+            self._setup = int(self._setup[0])
             self._combined = False
 
         """
@@ -90,7 +104,7 @@ class Data:
         try:
             self._ave_raw_data = np.loadtxt(re.sub(r'_part\d+', '', self._ave_path)).T
         except:
-            print(f"No ave file found for {filename}")
+            print(f"No ave file found for {self._filename}")
             self._ave_raw_data = None
 
         if self._ave_raw_data is not None:
@@ -117,6 +131,10 @@ class Data:
 
     def __le__(self, other: 'Data'):
         return self.setup <= other.setup
+
+    @property
+    def filename(self):
+        return self._filename
 
     @property
     def combined(self):
@@ -194,11 +212,13 @@ class Data:
 
     def plot(self, **kwargs):
         ax = self._lk_obj.plot(**kwargs)
+        ax.set_ylabel("Amplitude [mag]")
         ax.set_ylim(ax.get_ylim()[::-1])
 
     def scatter(self, **kwargs):
         ax = self._lk_obj.scatter(**kwargs, alpha=0.6)
         ax.set_ylim(ax.get_ylim()[::-1])
+        ax.set_ylabel("Amplitude [mag]")
         if self._ave_raw_data is not None:
             self._ave_lk_obj.scatter(**kwargs, c='r', ax=ax, s=10)
 
@@ -231,11 +251,14 @@ class Star:
 
         objects = self._get_objects(self.results[0])
 
-        if objects is not None:
-            object_used = objects[list(objects.keys())[0]]
-            object_used = Data(object_used[1], self)
-            self._field_name = object_used.field
-        else:
+        try:
+            if objects is not None:
+                object_used = objects[list(objects.keys())[0]][0]
+                parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_]+)_*([A-Za-z]*)', object_used)
+                self._field_name = parser[0][1]
+            else:
+                self._field_name = None
+        except IndexError:
             self._field_name = None
 
     def __lt__(self, other: 'Star'):
@@ -243,6 +266,10 @@ class Star:
 
     def __le__(self, other: 'Star'):
         return self._number <= other._number
+
+    @property
+    def field_name(self):
+        return self._field_name
 
     @property
     def name(self):
