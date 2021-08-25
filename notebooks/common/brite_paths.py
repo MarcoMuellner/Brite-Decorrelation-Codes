@@ -214,6 +214,18 @@ class Star:
         if len(self._results) == 0:
             self._results = [default_result_entry]
         self._field = field
+        self._name = self._path.split("/")[-1].replace("_"," ")
+        self._number = int(re.findall(r'\d+',self._name)[0])
+
+    def __lt__(self, other : 'Star'):
+        return self._number < other._number
+
+    def __le__(self, other : 'Star'):
+        return self._number <= other._number
+
+    @property
+    def name(self):
+        return self._name
     
     @property
     def config_dict(self):
@@ -330,7 +342,7 @@ def load(field : int = None) -> List[Star]:
         if not i.startswith("HD"):
             continue
         star_list.append(Star(config_dict,os.path.join(field_path,i),field))
-    
+    star_list = sorted(star_list)
     return star_list
           
 
