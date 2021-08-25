@@ -1,7 +1,7 @@
 from abc import abstractproperty
 from typing import IO, Union
 from .setup import *
-from typing import Dict,List
+from typing import Dict, List
 import lightkurve as lk
 from lightkurve.lightcurve import LightCurve
 from lightkurve.periodogram import Periodogram
@@ -11,11 +11,12 @@ from astropy import units as u
 from astroquery.simbad import Simbad
 import re
 
-Simbad.add_votable_fields('otype','sp')
+Simbad.add_votable_fields('otype', 'sp')
 
 default_result_entry = 'all'
 
-def combine_data(data_list : List['Data']):
+
+def combine_data(data_list: List['Data']):
     if len(data_list) == 0:
         print("No data provided!")
         return
@@ -37,18 +38,19 @@ def combine_data(data_list : List['Data']):
             print("No valid ave data!")
             ave_data = None
 
-        np.savetxt(os.path.join(target_path,filename+"_merged_.ndat"),raw_data.T)
+        np.savetxt(os.path.join(target_path, filename + "_merged_.ndat"), raw_data.T)
         if ave_data is not None:
-            np.savetxt(os.path.join(target_path,filename+"_merged_.ave"),ave_data.T)
+            np.savetxt(os.path.join(target_path, filename + "_merged_.ave"), ave_data.T)
         print(f"Saving {filename} in {target_path}")
 
+
 class Data:
-    def __init__(self,path : str, star_obj : 'Star') -> None:
+    def __init__(self, path: str, star_obj: 'Star') -> None:
         self._path = path
         filename = path.split("/")[-1]
-        self._ave_path = os.path.join(os.path.dirname(path),filename.replace("ndat",'ave'))
+        self._ave_path = os.path.join(os.path.dirname(path), filename.replace("ndat", 'ave'))
 
-        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_]+)_*([A-Za-z]*)',filename)
+        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_]+)_*([A-Za-z]*)', filename)
         self._starname = parser[0][0]
         self._field = parser[0][1]
         self._satellite = parser[0][2]
@@ -61,54 +63,59 @@ class Data:
         self._setup = nums[:-1]
         self._dr = nums[-1]
 
-        if "merged_" in self._path:
+        if "merged_" in self._path or len(self._setup) != 1:
             self._combined = True
         else:
             self._combined = False
-            
-            
-#         if len(self._setup) == 1:
-#             self._setup = int(self._setup[0])
-#             self._combined = False
-#         else:
-#             self._setup = [int(i) for i in self._setup]
-#             self._combined = True
 
+        """
+        if len(self._setup) == 1:
+            self._setup = int(self._setup[0])
+            self._combined = False
+        else:
+            self._setup = [int(i) for i in self._setup]
+            self._combined = True
+        """
 
         self._star = star_obj
 
         try:
             self._raw_data = np.loadtxt(path).T
             self._raw_data[1] = self._raw_data[1] - np.mean(self._raw_data[1])
-            self._lk_obj = lk.LightCurve(time=Time(self._raw_data[0],format='jd'),flux=self._raw_data[1]*u.mag,flux_err=self._raw_data[2]*u.mag)
+            self._lk_obj = lk.LightCurve(time=Time(self._raw_data[0], format='jd'), flux=self._raw_data[1] * u.mag,
+                                         flux_err=self._raw_data[2] * u.mag)
         except IndexError:
             raise ValueError()
 
         try:
-            self._ave_raw_data = np.loadtxt(re.sub(r'_part\d+','',self._ave_path)).T
+            self._ave_raw_data = np.loadtxt(re.sub(r'_part\d+', '', self._ave_path)).T
         except:
             print(f"No ave file found for {filename}")
             self._ave_raw_data = None
 
         if self._ave_raw_data is not None:
             try:
-                self._ave_lk_obj = lk.LightCurve(time=Time(self._ave_raw_data[0],format='jd'),flux=self._ave_raw_data[1]/1000*u.mag,flux_err=self._ave_raw_data[2]/1000*u.mag)
+                self._ave_lk_obj = lk.LightCurve(time=Time(self._ave_raw_data[0], format='jd'),
+                                                 flux=self._ave_raw_data[1] / 1000 * u.mag,
+                                                 flux_err=self._ave_raw_data[2] / 1000 * u.mag)
             except TypeError:
                 new_data = []
                 for i in self._ave_raw_data:
                     new_data.append([i])
                 self._ave_raw_data = np.array(new_data)
-                self._ave_lk_obj = lk.LightCurve(time=Time(self._ave_raw_data[0],format='jd'),flux=self._ave_raw_data[1]/1000*u.mag,flux_err=self._ave_raw_data[2]/1000*u.mag)
+                self._ave_lk_obj = lk.LightCurve(time=Time(self._ave_raw_data[0], format='jd'),
+                                                 flux=self._ave_raw_data[1] / 1000 * u.mag,
+                                                 flux_err=self._ave_raw_data[2] / 1000 * u.mag)
         else:
             self._ave_lk_obj = None
 
-    def __cmp__(self, other : 'Data'):
+    def __cmp__(self, other: 'Data'):
         return self.setup >= other.setup
 
-    def __lt__(self, other : 'Data'):
+    def __lt__(self, other: 'Data'):
         return self.setup < other.setup
 
-    def __le__(self,other : 'Data'):
+    def __le__(self, other: 'Data'):
         return self.setup <= other.setup
 
     @property
@@ -146,7 +153,7 @@ class Data:
     @property
     def path(self):
         return self._path
-    
+
     @property
     def time(self):
         return self._raw_data[0]
@@ -169,13 +176,14 @@ class Data:
 
     @property
     def rms(self):
-        return np.sqrt(np.sum(np.power(self._raw_data[1]-np.median(self._raw_data[1]),2))/len(self._raw_data[1]))
+        return np.sqrt(np.sum(np.power(self._raw_data[1] - np.median(self._raw_data[1]), 2)) / len(self._raw_data[1]))
 
     @property
     def ptp_scatter(self):
-        return np.sqrt(np.sum(np.power(self._raw_data[1][:-1] - self._raw_data[1][1:],2))/len(self._raw_data[1][:-1]))
+        return np.sqrt(
+            np.sum(np.power(self._raw_data[1][:-1] - self._raw_data[1][1:], 2)) / len(self._raw_data[1][:-1]))
 
-    def noise(self,num_datapoints = 500):
+    def noise(self, num_datapoints=500):
         return np.mean(self.to_periodogram().power[-num_datapoints:])
 
     def __str__(self) -> str:
@@ -184,19 +192,22 @@ class Data:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def plot(self,**kwargs):
-        self._lk_obj.plot(**kwargs)
+    def plot(self, **kwargs):
+        ax = self._lk_obj.plot(**kwargs)
+        ax.set_ylim(ax.get_ylim()[::-1])
 
-    def scatter(self,**kwargs):
-        ax = self._lk_obj.scatter(**kwargs,alpha=0.6)
+    def scatter(self, **kwargs):
+        ax = self._lk_obj.scatter(**kwargs, alpha=0.6)
+        ax.set_ylim(ax.get_ylim()[::-1])
         if self._ave_raw_data is not None:
-            self._ave_lk_obj.scatter(**kwargs,c='r',ax=ax,s=10)
+            self._ave_lk_obj.scatter(**kwargs, c='r', ax=ax, s=10)
 
-    def to_periodogram(self,method='lombscargle',**kwargs) -> Periodogram:
-        return self._lk_obj.to_periodogram(method,**kwargs)
+    def to_periodogram(self, method='lombscargle', minimum_frequency=0, maximum_frequency=10, **kwargs) -> Periodogram:
+        return self._lk_obj.to_periodogram(method, minimum_frequency=minimum_frequency,
+                                           maximum_frequency=maximum_frequency, **kwargs)
 
-    def fold(self,period=None,epoch_time=None,epoch_phase=0,wrap_phase=None,normalize_phase=False):
-        return self._lk_obj.fold(period,epoch_time,epoch_phase,wrap_phase,normalize_phase)
+    def fold(self, period=None, epoch_time=None, epoch_phase=0, wrap_phase=None, normalize_phase=False):
+        return self._lk_obj.fold(period, epoch_time, epoch_phase, wrap_phase, normalize_phase)
 
     @property
     def lk(self):
@@ -206,27 +217,37 @@ class Data:
     def lk_ave(self):
         return self._ave_lk_obj
 
+
 class Star:
-    def __init__(self,config_dict : Dict[str,str],path : str,field : int) -> None:
+    def __init__(self, config_dict: Dict[str, str], path: str, field: int) -> None:
         self._config_dict = config_dict
         self._path = path
         self._results = [i for i in os.listdir(path) if os.path.isdir(i) and not i.startswith(".")]
         if len(self._results) == 0:
             self._results = [default_result_entry]
         self._field = field
-        self._name = self._path.split("/")[-1].replace("_"," ")
-        self._number = int(re.findall(r'\d+',self._name)[0])
+        self._name = self._path.split("/")[-1].replace("_", " ")
+        self._number = int(re.findall(r'\d+', self._name)[0])
 
-    def __lt__(self, other : 'Star'):
+        objects = self._get_objects(self.results[0])
+
+        if objects is not None:
+            object_used = objects[list(objects.keys())[0]]
+            object_used = Data(object_used[1], self)
+            self._field_name = object_used.field
+        else:
+            self._field_name = None
+
+    def __lt__(self, other: 'Star'):
         return self._number < other._number
 
-    def __le__(self, other : 'Star'):
+    def __le__(self, other: 'Star'):
         return self._number <= other._number
 
     @property
     def name(self):
         return self._name
-    
+
     @property
     def config_dict(self):
         return self._config_dict
@@ -243,23 +264,23 @@ class Star:
     def simbad(self):
         return Simbad.query_object(self.__str__())
 
-    def _get_objects(self,result_path) -> Union[None,Dict[int,str]]:
+    def _get_objects(self, result_path) -> Union[None, Dict[int, str]]:
         if result_path not in self._results:
             raise AttributeError(f"Please use one of the following result datasets:\n {self._results}")
 
         if result_path == default_result_entry:
             used_path = self._path
         else:
-            used_path = os.path.join(self._path,result_path)
+            used_path = os.path.join(self._path, result_path)
         objects = {}
 
         counter = 1
 
-        for root,dir,files in os.walk(used_path):
+        for root, dir, files in os.walk(used_path):
             files = [i for i in files if i.endswith('ndat')]
             for file in files:
-                objects[counter] = (file,os.path.join(root,file))
-                counter +=1
+                objects[counter] = (file, os.path.join(root, file))
+                counter += 1
 
         if len(objects.keys()) == 0:
             print("No available data!")
@@ -267,7 +288,7 @@ class Star:
 
         return objects
 
-    def get_all_data_sets(self,result_path : str):
+    def get_all_data_sets(self, result_path: str):
         objects = self._get_objects(result_path)
         if objects is None:
             return []
@@ -276,13 +297,13 @@ class Star:
 
         for i in objects.values():
             try:
-                data_list.append(Data(i[1],self))
+                data_list.append(Data(i[1], self))
             except ValueError:
                 print(f"No valid data for {i[1]}")
 
         return data_list
-    
-    def get_data(self,result_path : str):
+
+    def get_data(self, result_path: str):
         objects = self._get_objects(result_path)
 
         if objects is None:
@@ -291,7 +312,7 @@ class Star:
         if len(objects.keys()) == 1:
             object_used = objects[list(objects.keys())[0]]
         else:
-            while(True):
+            while (True):
                 str_objects = "\n".join([f'{i}): {objects[i][0]}' for i in objects.keys()])
 
                 object_nr = input(f"Please choose a dataset by entering a number:\n {str_objects}")
@@ -300,25 +321,25 @@ class Star:
                 except:
                     print("Please enter a number!")
                     continue
-                    
+
                 if object_nr not in objects.keys():
                     print("Please enter a valid number from the list")
                     continue
 
-                object_used= objects[object_nr]
+                object_used = objects[object_nr]
                 break
 
-        return Data(object_used[1],self)
-
+        return Data(object_used[1], self)
 
     def __str__(self) -> str:
-        return self._path.split("/")[-1].replace("_"," ")
-    
+        return self._path.split("/")[-1].replace("_", " ")
+
     def __repr__(self) -> str:
         return self.__str__()
 
-def load(field : int = None) -> List[Star]:
-    if(field is None):
+
+def load(field: int = None) -> List[Star]:
+    if (field is None):
         field = input("Please enter a field: ")
         try:
             field = int(field)
@@ -328,24 +349,19 @@ def load(field : int = None) -> List[Star]:
 
     config_dict = get_config()
 
-    field_path = os.path.join(config_dict[ValueDefined.decorrelation_path.value],"Decorrelations",f"Field {field}")
+    field_path = os.path.join(config_dict[ValueDefined.decorrelation_path.value], "Decorrelations", f"Field {field}")
 
     if not os.path.exists(field_path):
         raise IOError(f"Path {field_path} doesn't exist!")
-    
+
     star_list = []
 
     if len([i for i in os.listdir(field_path) if i.startswith("HD")]) == 0:
-        field_path = os.path.join(field_path,'RESULTS')
+        field_path = os.path.join(field_path, 'RESULTS')
 
     for i in os.listdir(field_path):
         if not i.startswith("HD"):
             continue
-        star_list.append(Star(config_dict,os.path.join(field_path,i),field))
+        star_list.append(Star(config_dict, os.path.join(field_path, i), field))
     star_list = sorted(star_list)
     return star_list
-          
-
-
-
-
