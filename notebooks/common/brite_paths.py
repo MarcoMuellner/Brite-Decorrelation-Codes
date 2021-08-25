@@ -1,5 +1,6 @@
 from abc import abstractproperty
 from typing import IO, Union
+import matplotlib.pyplot as plt
 from .setup import *
 from typing import Dict, List
 import lightkurve as lk
@@ -14,6 +15,27 @@ import re
 Simbad.add_votable_fields('otype', 'sp')
 
 default_result_entry = 'all'
+
+def binning(time, mag, period, num):
+    time = (time%period)/period# (1/0.5988495842998753)*0.5988495842998753
+    bins = []
+    means = []
+    sds = []
+    bins.append(0)
+    ind = np.where(np.logical_and(time >= 0, time <= 0.5 / num))
+    means.append(np.mean(mag[ind]))
+    sds.append(np.std(mag[ind]) / np.sqrt(len(mag[ind])))
+    for i in range(num - 1):
+        ind = np.where(np.logical_and(time >= (i + 0.5) / num, time <= (i + 1.5) / num))
+        if ind[0].size > 0:
+            bins.append((i + 1) / num)
+            means.append(np.mean(mag[ind]))
+            sds.append(np.std(mag[ind]))
+    bins.append(1)
+    ind = np.where(np.logical_and(time >= (num - 0.5) / num, time <= 1))
+    means.append(np.mean(mag[ind]))
+    sds.append(np.std(mag[ind]))
+    return np.array(bins), np.array(means), np.array(sds)
 
 
 def combine_data(data_list: List['Data']):
@@ -201,6 +223,45 @@ class Data:
         ax.set_ylim(ax.get_ylim()[::-1])
         if self._ave_raw_data is not None:
             self._ave_lk_obj.scatter(**kwargs, c='r', ax=ax, s=10)
+
+    def phasephold(self, period = 1, num_bins = 0, plot_ave = True, show_errors = False, bin_color = 'y'):
+        fig, ax = plt.subplots()
+        ax.plot((self._lk_obj.time.value%period)/period, self._lk_obj.flux.value, 'ko', ms = 0.5, alpha = 0.5, zorder = 1)
+        ax.plot((self._lk_obj.time.value%period)/period + 1, self._lk_obj.flux.value, 'ko', ms = 0.5, alpha = 0.5, zorder = 1)
+        if plot_ave:
+            try:
+                ax.plot((self._ave_lk_obj.time.value % period) / period, self._ave_lk_obj.flux.value, color='r', ls='', marker='o', ms=1.5,
+                               alpha=0.75, zorder = 1)
+                ax.plot((self._ave_lk_obj.time.value % period) / period + 1, self._ave_lk_obj.flux.value, color='r', ls='', marker='o',
+                               ms=1.5, alpha=0.75, zorder = 1)
+            except:
+                pass
+        if num_bins != 0:
+
+            if plot_ave:
+                try:
+                    bins, means, sds = binning(self._ave_lk_obj.time.value, self._ave_lk_obj.flux.value, period, num_bins)
+                    if show_errors:
+                        ax.errorbar(bins, means, yerr = sds, color =  bin_color,ls = '', capsize = 5, capthick = 2, zorder = 5)
+                        ax.errorbar(bins + 1, means, yerr = sds, color =  bin_color,ls = '', capsize = 5, capthick = 2, zorder = 5)
+                    ax.plot(bins, means, bin_color + 'o--', ms=5, zorder = 5)
+                    ax.plot(bins + 1, means, bin_color + 'o--', ms=5, zorder = 5)
+                except:
+                    bins, means, sds = binning(self._lk_obj.time.value, self._lk_obj.flux.value, period, num_bins)
+                    if show_errors:
+                        ax.errorbar(bins, means, yerr=sds, color= bin_color, ls = '', capsize = 5, capthick = 2, zorder = 5)
+                        ax.errorbar(bins + 1, means, yerr=sds, color= bin_color,ls = '', capsize = 5, capthick = 2, zorder = 5)
+                    ax.plot(bins, means, bin_color + 'o--', ms=5, zorder = 5)
+                    ax.plot(bins + 1, means, bin_color + 'o--', ms=5, zorder = 5)
+
+        ax.invert_yaxis()
+
+        ax.set_xlabel("phase P={:3f} d".format(period))
+        ax.set_ylabel("Magnitude")
+
+
+
+
 
     def to_periodogram(self, method='lombscargle', minimum_frequency=0, maximum_frequency=10, **kwargs) -> Periodogram:
         return self._lk_obj.to_periodogram(method, minimum_frequency=minimum_frequency,
