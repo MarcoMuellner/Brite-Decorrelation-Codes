@@ -37,9 +37,9 @@ def combine_data(data_list : List['Data']):
             print("No valid ave data!")
             ave_data = None
 
-        np.savetxt(os.path.join(target_path,filename+".ndat"),raw_data.T)
+        np.savetxt(os.path.join(target_path,filename+"_merged_.ndat"),raw_data.T)
         if ave_data is not None:
-            np.savetxt(os.path.join(target_path,filename+".ave"),ave_data.T)
+            np.savetxt(os.path.join(target_path,filename+"_merged_.ave"),ave_data.T)
         print(f"Saving {filename} in {target_path}")
 
 class Data:
@@ -61,12 +61,18 @@ class Data:
         self._setup = nums[:-1]
         self._dr = nums[-1]
 
-        if len(self._setup) == 1:
-            self._setup = int(self._setup[0])
-            self._combined = False
-        else:
-            self._setup = [int(i) for i in self._setup]
+        if "merged_" in self._path:
             self._combined = True
+        else:
+            self._combined = False
+            
+            
+#         if len(self._setup) == 1:
+#             self._setup = int(self._setup[0])
+#             self._combined = False
+#         else:
+#             self._setup = [int(i) for i in self._setup]
+#             self._combined = True
 
 
         self._star = star_obj
@@ -327,6 +333,7 @@ def load(field : int = None) -> List[Star]:
     
     return star_list
           
+
 
 
 
