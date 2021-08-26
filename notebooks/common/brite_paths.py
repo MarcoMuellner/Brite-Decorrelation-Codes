@@ -1,6 +1,9 @@
 from abc import abstractproperty
 from typing import IO, Union
 import matplotlib.pyplot as plt
+from astropy.stats import LombScargle
+from astropy.units import cds
+
 from .setup import *
 from typing import Dict, List
 import lightkurve as lk
@@ -117,7 +120,7 @@ class Data:
 
         try:
             self._raw_data = np.loadtxt(path).T
-            self._raw_data[1] = self._raw_data[1] - np.mean(self._raw_data[1])
+            self._raw_data[1] = self._raw_data[1] - np.median(self._raw_data[1])
             self._lk_obj = lk.LightCurve(time=Time(self._raw_data[0], format='jd'), flux=self._raw_data[1] * u.mag,
                                          flux_err=self._raw_data[2] * u.mag)
         except IndexError:
@@ -284,8 +287,20 @@ class Data:
 
 
     def to_periodogram(self, method='lombscargle', minimum_frequency=0, maximum_frequency=10, **kwargs) -> Periodogram:
-        return self._lk_obj.to_periodogram(method, minimum_frequency=minimum_frequency,
-                                           maximum_frequency=maximum_frequency, **kwargs)
+        nyquist = 1/(2*np.median(np.diff(self._raw_data[0])))
+        ls = LombScargle(self._raw_data[0],self._raw_data[1],normalization='psd')
+
+        f, p = ls.autopower(minimum_frequency=minimum_frequency, maximum_frequency=maximum_frequency,
+                            samples_per_peak=10, nyquist_factor=1)
+
+        # normalization of psd in order to get good amplitudes
+        p = np.sqrt(4 / len(self._raw_data[0])) * np.sqrt(p)
+
+        # removing first item
+        p = p[1:]
+        f = f[1:]
+
+        return Periodogram(f*(1/cds.d),p*u.mag,nyquist=nyquist)
 
     def fold(self, period=None, epoch_time=None, epoch_phase=0, wrap_phase=None, normalize_phase=False):
         return self._lk_obj.fold(period, epoch_time, epoch_phase, wrap_phase, normalize_phase)
