@@ -120,7 +120,7 @@ class Data:
 
         try:
             self._raw_data = np.loadtxt(path).T
-            self._raw_data[1] = self._raw_data[1] - np.mean(self._raw_data[1])
+            self._raw_data[1] = self._raw_data[1] - np.median(self._raw_data[1])
             self._lk_obj = lk.LightCurve(time=Time(self._raw_data[0], format='jd'), flux=self._raw_data[1] * u.mag,
                                          flux_err=self._raw_data[2] * u.mag)
         except IndexError:
