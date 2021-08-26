@@ -97,7 +97,7 @@ class Data:
         self._setup = nums[:-1]
         self._dr = nums[-1]
 
-        if "merged_" in self._path or len(self._setup) != 1:
+        if "merged_" in self._path:# or len(self._setup) != 1: # the second does not work
             self._setup = [int(i) for i in self._setup]
             self._combined = True
         else:
