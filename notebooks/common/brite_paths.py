@@ -59,8 +59,8 @@ def combine_data(data_list: List['Data']):
             files.append(i.filename)
             sat_data.append(i)
 
-        if len(sat_data) == 1:
-            continue
+        #if len(sat_data) == 1:  removed since otherwise no merged file when only single setup for a star
+         #   continue
 
         filename = f"{sat_data[0].starname}_{sat_data[0].field}_{satellite}_{'_'.join([str(i.setup) for i in reversed(sat_data)])}_{sat_data[0].dr}"
 
@@ -110,7 +110,7 @@ class Data:
         """
         if len(self._setup) == 1:
             self._setup = int(self._setup[0])
-            self._combined = False
+            self._combined = 
         else:
             self._setup = [int(i) for i in self._setup]
             self._combined = True
