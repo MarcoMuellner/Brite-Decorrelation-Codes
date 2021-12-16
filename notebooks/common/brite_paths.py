@@ -83,7 +83,7 @@ class Data:
         self._filename = path.split("/")[-1]
         self._ave_path = os.path.join(os.path.dirname(path), self._filename.replace("ndat", 'ave'))
 
-        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_-]+)_*([A-Za-z]*)', self._filename)
+        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_-]+[\w+])_*([A-Za-z]*)', self._filename)
         self._starname = parser[0][0]
         self._field = parser[0][1]
         self._satellite = parser[0][2]
@@ -97,14 +97,14 @@ class Data:
         if len(nums[-1]) == 0:
             nums = nums[:-1]
 
-        self._setup = nums[:-1]
+        self._setup = nums[-1]
         self._dr = nums[-1]
 
         if "merged_" in self._path:# or len(self._setup) != 1: # the second does not work
-            self._setup = [int(i) for i in self._setup]
+            self._setup = [i for i in self._setup]
             self._combined = True
         else:
-            self._setup = int(self._setup[0])
+            self._setup = self._setup[0]
             self._combined = False
 
         """
@@ -452,7 +452,11 @@ def load(field: int = None) -> List[Star]:
 
     config_dict = get_config()
 
-    field_path = os.path.join(config_dict[ValueDefined.decorrelation_path.value], "Decorrelations", f"Field {field}")
+    field_name = [i for i in os.listdir(os.path.join(config_dict[ValueDefined.decorrelation_path.value], "Decorrelations",)) if i.startswith(f"Field {field}")]
+    if len(field_name) == 0:
+        raise AttributeError(f"No field with the number {field} found!")
+
+    field_path = os.path.join(config_dict[ValueDefined.decorrelation_path.value], "Decorrelations", field_name[0])
 
     if not os.path.exists(field_path):
         raise IOError(f"Path {field_path} doesn't exist!")
