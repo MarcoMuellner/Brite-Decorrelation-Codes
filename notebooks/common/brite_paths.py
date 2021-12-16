@@ -83,7 +83,7 @@ class Data:
         self._filename = path.split("/")[-1]
         self._ave_path = os.path.join(os.path.dirname(path), self._filename.replace("ndat", 'ave'))
 
-        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\d_-]+[\w+])_*([A-Za-z]*)', self._filename)
+        parser = re.findall(r'(HD\d+)_(\d+-\w+-\w+-\d+)_([a-zA-Z]*)_([\w_-]+)_*([A-Za-z]*)', self._filename)
         self._starname = parser[0][0]
         self._field = parser[0][1]
         self._satellite = parser[0][2]
@@ -97,8 +97,8 @@ class Data:
         if len(nums[-1]) == 0:
             nums = nums[:-1]
 
-        self._setup = nums[-1]
-        self._dr = nums[-1]
+        self._setup = nums[:-2]
+        self._dr = nums[-2]
 
         if "merged_" in self._path:# or len(self._setup) != 1: # the second does not work
             self._setup = [i for i in self._setup]
