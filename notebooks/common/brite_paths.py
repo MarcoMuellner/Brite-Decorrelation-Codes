@@ -1,4 +1,5 @@
 from abc import abstractproperty
+from copy import deepcopy
 from typing import IO, Union
 import matplotlib.pyplot as plt
 from astropy.stats import LombScargle
@@ -156,6 +157,45 @@ class Data:
 
     def __le__(self, other: 'Data'):
         return self.setup <= other.setup
+
+    def set_min_time(self, time: float) -> "Data":
+        mask = self.time > time
+        obj = deepcopy(self)
+        obj._raw_data = obj._raw_data[:, mask]
+        mask= obj._ave_raw_data[0] > time
+        obj._ave_raw_data = obj._ave_raw_data[:, mask]
+        obj._lk_obj = lk.LightCurve(time=Time(obj._raw_data[0], format='jd'), flux=obj._raw_data[1] * u.mag,
+                                    flux_err=obj._raw_data[2] * u.mag)
+        obj._ave_lk_obj = obj._ave_lk_obj = lk.LightCurve(time=Time(obj._ave_raw_data[0], format='jd'),
+                                                          flux=obj._ave_raw_data[1] / 1000 * u.mag,
+                                                          flux_err=obj._ave_raw_data[2] / 1000 * u.mag)
+        return obj
+
+    def set_max_time(self, time: float) -> "Data":
+        mask = self.time < time
+        obj = deepcopy(self)
+        obj._raw_data = obj._raw_data[:, mask]
+        mask= obj._ave_raw_data[0] < time
+        obj._ave_raw_data = obj._ave_raw_data[:, mask]
+        obj._lk_obj = lk.LightCurve(time=Time(obj._raw_data[0], format='jd'), flux=obj._raw_data[1] * u.mag,
+                                    flux_err=obj._raw_data[2] * u.mag)
+        obj._ave_lk_obj = obj._ave_lk_obj = lk.LightCurve(time=Time(obj._ave_raw_data[0], format='jd'),
+                                                          flux=obj._ave_raw_data[1] / 1000 * u.mag,
+                                                          flux_err=obj._ave_raw_data[2] / 1000 * u.mag)
+        return obj
+
+    def filter_by_error(self,sigma: int) -> "Data":
+        mask = self.flux_err < (np.median(self.flux_err) + sigma*np.std(self.flux_err))
+        obj = deepcopy(self)
+        obj._raw_data = obj._raw_data[:, mask]
+        mask= self._ave_lk_obj.flux_err < (np.median(self._ave_lk_obj.flux_err) + sigma*np.std(self._ave_lk_obj.flux_err))
+        obj._ave_raw_data = obj._ave_raw_data[:, mask]
+        obj._lk_obj = lk.LightCurve(time=Time(obj._raw_data[0], format='jd'), flux=obj._raw_data[1] * u.mag,
+                                    flux_err=obj._raw_data[2] * u.mag)
+        obj._ave_lk_obj = obj._ave_lk_obj = lk.LightCurve(time=Time(obj._ave_raw_data[0], format='jd'),
+                                                          flux=obj._ave_raw_data[1] / 1000 * u.mag,
+                                                          flux_err=obj._ave_raw_data[2] / 1000 * u.mag)
+        return obj
 
     @property
     def filename(self):
