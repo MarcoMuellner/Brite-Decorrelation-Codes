@@ -446,7 +446,7 @@ class Star:
 
         return data_list
 
-    def get_data(self, result_path: str):
+    def get_data(self, result_path: str) -> Data:
         objects = self._get_objects(result_path)
 
         if objects is None:
@@ -473,6 +473,21 @@ class Star:
                 break
 
         return Data(object_used[1], self)
+
+    def get_all_data(self,result_path:str) -> List[Data]:
+        objects = self._get_objects(result_path)
+
+        if objects is None:
+            return None
+
+        data_list = []
+        for key,value in objects.items():
+            try:
+                data_list.append(Data(value[1],self))
+            except:
+                pass
+
+        return data_list
 
     def __str__(self) -> str:
         return self._path.split("/")[-1].replace("_", " ")
