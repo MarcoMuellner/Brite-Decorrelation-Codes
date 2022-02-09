@@ -16,12 +16,18 @@ from astropy import units as u
 from astroquery.simbad import Simbad
 import re
 
+import warnings
+warnings.filterwarnings("ignore")
+
 Simbad.add_votable_fields('otype', 'sp', 'flux(V)')
 
 default_result_entry = 'all'
 
+orbital_periods = {'UBr': 100.3708/1440, 'BAb':  100.3617/1440, 'BTr': 98.2428/1440, 'BLb': 99.6651/1440, 'BHr':97.0972/1440}
+
+
 def binning(time, mag, period, num):
-    time = (time%period)/period# (1/0.5988495842998753)*0.5988495842998753
+    time = (time % period) / period  # (1/0.5988495842998753)*0.5988495842998753
     bins = []
     means = []
     sds = []
@@ -60,8 +66,8 @@ def combine_data(data_list: List['Data']):
             files.append(i.filename)
             sat_data.append(i)
 
-        #if len(sat_data) == 1:  removed since otherwise no merged file when only single setup for a star
-         #   continue
+        # if len(sat_data) == 1:  removed since otherwise no merged file when only single setup for a star
+        #   continue
 
         filename = f"{sat_data[0].starname}_{sat_data[0].field}_{satellite}_{'_'.join([str(i.setup) for i in reversed(sat_data)])}_{sat_data[0].dr}"
 
@@ -101,7 +107,7 @@ class Data:
         self._setup = nums[:-2]
         self._dr = nums[-2]
 
-        if "merged_" in self._path:# or len(self._setup) != 1: # the second does not work
+        if "merged_" in self._path:  # or len(self._setup) != 1: # the second does not work
             self._setup = [i for i in self._setup]
             self._combined = True
         else:
@@ -162,7 +168,7 @@ class Data:
         mask = self.time > time
         obj = deepcopy(self)
         obj._raw_data = obj._raw_data[:, mask]
-        mask= obj._ave_raw_data[0] > time
+        mask = obj._ave_raw_data[0] > time
         obj._ave_raw_data = obj._ave_raw_data[:, mask]
         obj._lk_obj = lk.LightCurve(time=Time(obj._raw_data[0], format='jd'), flux=obj._raw_data[1] * u.mag,
                                     flux_err=obj._raw_data[2] * u.mag)
@@ -175,7 +181,7 @@ class Data:
         mask = self.time < time
         obj = deepcopy(self)
         obj._raw_data = obj._raw_data[:, mask]
-        mask= obj._ave_raw_data[0] < time
+        mask = obj._ave_raw_data[0] < time
         obj._ave_raw_data = obj._ave_raw_data[:, mask]
         obj._lk_obj = lk.LightCurve(time=Time(obj._raw_data[0], format='jd'), flux=obj._raw_data[1] * u.mag,
                                     flux_err=obj._raw_data[2] * u.mag)
@@ -184,11 +190,12 @@ class Data:
                                                           flux_err=obj._ave_raw_data[2] / 1000 * u.mag)
         return obj
 
-    def filter_by_error(self,sigma: int) -> "Data":
-        mask = self.flux_err < (np.median(self.flux_err) + sigma*np.std(self.flux_err))
+    def filter_by_error(self, sigma: int) -> "Data":
+        mask = self.flux_err < (np.median(self.flux_err) + sigma * np.std(self.flux_err))
         obj = deepcopy(self)
         obj._raw_data = obj._raw_data[:, mask]
-        mask= self._ave_lk_obj.flux_err < (np.median(self._ave_lk_obj.flux_err) + sigma*np.std(self._ave_lk_obj.flux_err))
+        mask = self._ave_lk_obj.flux_err < (
+                    np.median(self._ave_lk_obj.flux_err) + sigma * np.std(self._ave_lk_obj.flux_err))
         obj._ave_raw_data = obj._ave_raw_data[:, mask]
         obj._lk_obj = lk.LightCurve(time=Time(obj._raw_data[0], format='jd'), flux=obj._raw_data[1] * u.mag,
                                     flux_err=obj._raw_data[2] * u.mag)
@@ -196,6 +203,35 @@ class Data:
                                                           flux=obj._ave_raw_data[1] / 1000 * u.mag,
                                                           flux_err=obj._ave_raw_data[2] / 1000 * u.mag)
         return obj
+
+    def get_averaged_lightcurve(self,use_mean=False) -> lk.LightCurve:
+        time_for_ave = self._lk_obj.time.value
+        flux_for_ave = self._lk_obj.flux.value
+        sort = np.argsort(time_for_ave)
+        time_for_ave = time_for_ave[sort]
+        flux_for_ave = flux_for_ave[sort]
+        orbit_per = orbital_periods[self.satellite]
+        t0 = 0
+        for i in range(len(self._lk_obj.time)):
+            if time_for_ave[i + 1] - time_for_ave[i] > 0.5 * orbit_per:
+                t0 = time_for_ave[i + 1] - 1.45 * orbit_per
+                break
+        while t0 > time_for_ave[0]:
+            t0 -= orbit_per
+
+        t = t0
+        ave_times = []
+        ave_flux = []
+
+        while t < time_for_ave[-1]:
+            ind = np.where(np.logical_and(time_for_ave >= t, time_for_ave <= t + orbit_per))
+            if ind[0].size > 1:
+                ave_times.append(np.mean(time_for_ave[ind]))
+                ave_flux.append(np.mean(flux_for_ave[ind]) if use_mean else np.median(flux_for_ave[ind]))
+            t += orbit_per
+
+        ave_lk = LightCurve(ave_times, ave_flux)
+        return ave_lk
 
     @property
     def filename(self):
@@ -287,48 +323,48 @@ class Data:
         if self._ave_raw_data is not None:
             self._ave_lk_obj.scatter(**kwargs, c='r', ax=ax, s=10)
 
-    def phasephold(self, period = 1, num_bins = 0, plot_ave = True, show_errors = False, bin_color = 'y'):
+    def phasephold(self, period=1, num_bins=0, plot_ave=True, show_errors=False, bin_color='y'):
         fig, ax = plt.subplots()
-        ax.plot((self._lk_obj.time.value%period)/period, self._lk_obj.flux.value, 'ko', ms = 0.5, alpha = 0.5, zorder = 1)
-        ax.plot((self._lk_obj.time.value%period)/period + 1, self._lk_obj.flux.value, 'ko', ms = 0.5, alpha = 0.5, zorder = 1)
+        ax.plot((self._lk_obj.time.value % period) / period, self._lk_obj.flux.value, 'ko', ms=0.5, alpha=0.5, zorder=1)
+        ax.plot((self._lk_obj.time.value % period) / period + 1, self._lk_obj.flux.value, 'ko', ms=0.5, alpha=0.5,
+                zorder=1)
         if plot_ave:
             try:
-                ax.plot((self._ave_lk_obj.time.value % period) / period, self._ave_lk_obj.flux.value, color='r', ls='', marker='o', ms=1.5,
-                               alpha=0.75, zorder = 1)
-                ax.plot((self._ave_lk_obj.time.value % period) / period + 1, self._ave_lk_obj.flux.value, color='r', ls='', marker='o',
-                               ms=1.5, alpha=0.75, zorder = 1)
+                ax.plot((self._ave_lk_obj.time.value % period) / period, self._ave_lk_obj.flux.value, color='r', ls='',
+                        marker='o', ms=1.5,
+                        alpha=0.75, zorder=1)
+                ax.plot((self._ave_lk_obj.time.value % period) / period + 1, self._ave_lk_obj.flux.value, color='r',
+                        ls='', marker='o',
+                        ms=1.5, alpha=0.75, zorder=1)
             except:
                 pass
         if num_bins != 0:
 
             if plot_ave:
                 try:
-                    bins, means, sds = binning(self._ave_lk_obj.time.value, self._ave_lk_obj.flux.value, period, num_bins)
+                    bins, means, sds = binning(self._ave_lk_obj.time.value, self._ave_lk_obj.flux.value, period,
+                                               num_bins)
                     if show_errors:
-                        ax.errorbar(bins, means, yerr = sds, color =  bin_color,ls = '', capsize = 5, capthick = 2, zorder = 5)
-                        ax.errorbar(bins + 1, means, yerr = sds, color =  bin_color,ls = '', capsize = 5, capthick = 2, zorder = 5)
-                    ax.plot(bins, means, bin_color + 'o--', ms=5, zorder = 5)
-                    ax.plot(bins + 1, means, bin_color + 'o--', ms=5, zorder = 5)
+                        ax.errorbar(bins, means, yerr=sds, color=bin_color, ls='', capsize=5, capthick=2, zorder=5)
+                        ax.errorbar(bins + 1, means, yerr=sds, color=bin_color, ls='', capsize=5, capthick=2, zorder=5)
+                    ax.plot(bins, means, bin_color + 'o--', ms=5, zorder=5)
+                    ax.plot(bins + 1, means, bin_color + 'o--', ms=5, zorder=5)
                 except:
                     bins, means, sds = binning(self._lk_obj.time.value, self._lk_obj.flux.value, period, num_bins)
                     if show_errors:
-                        ax.errorbar(bins, means, yerr=sds, color= bin_color, ls = '', capsize = 5, capthick = 2, zorder = 5)
-                        ax.errorbar(bins + 1, means, yerr=sds, color= bin_color,ls = '', capsize = 5, capthick = 2, zorder = 5)
-                    ax.plot(bins, means, bin_color + 'o--', ms=5, zorder = 5)
-                    ax.plot(bins + 1, means, bin_color + 'o--', ms=5, zorder = 5)
+                        ax.errorbar(bins, means, yerr=sds, color=bin_color, ls='', capsize=5, capthick=2, zorder=5)
+                        ax.errorbar(bins + 1, means, yerr=sds, color=bin_color, ls='', capsize=5, capthick=2, zorder=5)
+                    ax.plot(bins, means, bin_color + 'o--', ms=5, zorder=5)
+                    ax.plot(bins + 1, means, bin_color + 'o--', ms=5, zorder=5)
 
         ax.invert_yaxis()
 
         ax.set_xlabel("phase P={:3f} d".format(period))
         ax.set_ylabel("Magnitude")
 
-
-
-
-
     def to_periodogram(self, method='lombscargle', minimum_frequency=0, maximum_frequency=10, **kwargs) -> Periodogram:
-        nyquist = 1/(2*np.median(np.diff(self._raw_data[0])))
-        ls = LombScargle(self._raw_data[0],self._raw_data[1],normalization='psd')
+        nyquist = 1 / (2 * np.median(np.diff(self._raw_data[0])))
+        ls = LombScargle(self._raw_data[0], self._raw_data[1], normalization='psd')
 
         f, p = ls.autopower(minimum_frequency=minimum_frequency, maximum_frequency=maximum_frequency,
                             samples_per_peak=10, nyquist_factor=1)
@@ -340,7 +376,7 @@ class Data:
         p = p[1:]
         f = f[1:]
 
-        return Periodogram(f*(1/cds.d),p*u.mag,nyquist=nyquist)
+        return Periodogram(f * (1 / cds.d), p * u.mag, nyquist=nyquist)
 
     def fold(self, period=None, epoch_time=None, epoch_phase=0, wrap_phase=None, normalize_phase=False):
         return self._lk_obj.fold(period, epoch_time, epoch_phase, wrap_phase, normalize_phase)
@@ -474,16 +510,16 @@ class Star:
 
         return Data(object_used[1], self)
 
-    def get_all_data(self,result_path:str) -> List[Data]:
+    def get_all_data(self, result_path: str) -> List[Data]:
         objects = self._get_objects(result_path)
 
         if objects is None:
             return None
 
         data_list = []
-        for key,value in objects.items():
+        for key, value in objects.items():
             try:
-                data_list.append(Data(value[1],self))
+                data_list.append(Data(value[1], self))
             except:
                 pass
 
@@ -507,7 +543,9 @@ def load(field: int = None) -> List[Star]:
 
     config_dict = get_config()
 
-    field_name = [i for i in os.listdir(os.path.join(config_dict[ValueDefined.decorrelation_path.value], "Decorrelations",)) if i.startswith(f"Field {field}")]
+    field_name = [i for i in
+                  os.listdir(os.path.join(config_dict[ValueDefined.decorrelation_path.value], "Decorrelations", )) if
+                  i.startswith(f"Field {field}")]
     if len(field_name) == 0:
         raise AttributeError(f"No field with the number {field} found!")
 
