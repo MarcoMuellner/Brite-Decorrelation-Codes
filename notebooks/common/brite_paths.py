@@ -441,7 +441,10 @@ class Star:
 
     @property
     def simbad(self):
-        return Simbad.query_object(self.__str__())
+        customSimbad = Simbad()
+        customSimbad.add_votable_fields('flux(V)')
+        customSimbad.add_votable_fields('sp')
+        return customSimbad.query_object(self.__str__())
 
     def _get_objects(self, result_path) -> Union[None, Dict[int, str]]:
         if result_path not in self._results:
