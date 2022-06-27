@@ -2,8 +2,10 @@ from abc import abstractproperty
 from copy import deepcopy
 from typing import IO, Union
 import matplotlib.pyplot as plt
+from astropy.coordinates import SkyCoord
 from astropy.stats import LombScargle
 from astropy.units import cds
+from astroquery.gaia import Gaia
 
 from .setup import *
 from typing import Dict, List
@@ -17,13 +19,15 @@ from astroquery.simbad import Simbad
 import re
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
-Simbad.add_votable_fields('otype', 'sp', 'flux(V)')
+Simbad.add_votable_fields('otype', 'sp', 'flux(V)','flux(B)', 'ids', 'parallax' )
 
 default_result_entry = 'all'
 
-orbital_periods = {'UBr': 100.3708/1440, 'BAb':  100.3617/1440, 'BTr': 98.2428/1440, 'BLb': 99.6651/1440, 'BHr':97.0972/1440}
+orbital_periods = {'UBr': 100.3708 / 1440, 'BAb': 100.3617 / 1440, 'BTr': 98.2428 / 1440, 'BLb': 99.6651 / 1440,
+                   'BHr': 97.0972 / 1440}
 
 
 def binning(time, mag, period, num):
@@ -195,7 +199,7 @@ class Data:
         obj = deepcopy(self)
         obj._raw_data = obj._raw_data[:, mask]
         mask = self._ave_lk_obj.flux_err < (
-                    np.median(self._ave_lk_obj.flux_err) + sigma * np.std(self._ave_lk_obj.flux_err))
+                np.median(self._ave_lk_obj.flux_err) + sigma * np.std(self._ave_lk_obj.flux_err))
         obj._ave_raw_data = obj._ave_raw_data[:, mask]
         obj._lk_obj = lk.LightCurve(time=Time(obj._raw_data[0], format='jd'), flux=obj._raw_data[1] * u.mag,
                                     flux_err=obj._raw_data[2] * u.mag)
@@ -204,7 +208,7 @@ class Data:
                                                           flux_err=obj._ave_raw_data[2] / 1000 * u.mag)
         return obj
 
-    def get_averaged_lightcurve(self,use_mean=False) -> lk.LightCurve:
+    def get_averaged_lightcurve(self, use_mean=False) -> lk.LightCurve:
         time_for_ave = self._lk_obj.time.value
         flux_for_ave = self._lk_obj.flux.value
         sort = np.argsort(time_for_ave)
@@ -392,6 +396,8 @@ class Data:
 
 class Star:
     def __init__(self, config_dict: Dict[str, str], path: str, field: int) -> None:
+        self._gaia = None
+        self._simbad = None
         self._config_dict = config_dict
         self._path = path
         self._results = [i for i in os.listdir(path) if os.path.isdir(i) and not i.startswith(".")]
@@ -440,11 +446,51 @@ class Star:
         return self._results
 
     @property
+    def gaia(self):
+        if self._gaia is None:
+            self._load_gaia()
+        return self._gaia
+
+    def _load_simbad(self):
+        if self._simbad is None:
+            customSimbad = Simbad()
+            customSimbad.add_votable_fields('otype', 'sp', 'flux(V)', 'flux(B)', 'ids', 'parallax')
+            self._simbad =  customSimbad.query_object(self.__str__())
+
+    @property
+    def M(self):
+        return self.simbad['FLUX_V'][0] - 5*np.log(self.distance/10)
+            
+
+    @property
+    def parallax(self):
+        if self._simbad is None:
+            self._load_simbad()
+
+        if self._gaia is None:
+            self._load_gaia()
+
+        return self._gaia['parallax'][0] if len(self._gaia['parallax']) > 0 and self._gaia['parallax'][0] > 0 else self._simbad.to_pandas()['PLX_VALUE'][0]
+
+    @property
+    def distance(self):
+        return 1000/(self.parallax)
+
+    def _load_gaia(self):
+        if self._gaia is None:
+            self._load_simbad()
+
+            simbad_table = self.simbad.to_pandas()
+            coord = SkyCoord(ra=simbad_table['RA'][0], dec=simbad_table['DEC'][0], unit=(u.hourangle, u.deg), frame='icrs')
+            width = u.Quantity(0.01, u.deg)
+            height = u.Quantity(0.01, u.deg)
+            self._gaia = Gaia.query_object_async(coordinate=coord, width=width, height=height)
+
+    @property
     def simbad(self):
-        customSimbad = Simbad()
-        customSimbad.add_votable_fields('flux(V)')
-        customSimbad.add_votable_fields('sp')
-        return customSimbad.query_object(self.__str__())
+        if self._simbad is None:
+            self._load_simbad()
+        return self._simbad
 
     def _get_objects(self, result_path) -> Union[None, Dict[int, str]]:
         if result_path not in self._results:

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from .brite_paths import Data, load, Star
+from astroquery.gaia import Gaia
 
 
 class IStatPointObject:
@@ -23,6 +24,17 @@ class SpectraTypeStat(IStatPointObject):
     def get_datapoint(self, data: Data) -> float:
         try:
             return data.star.simbad["SP_TYPE"].value.data[0][0]
+        except Exception as e:
+            raise e
+
+
+class BMagnitudeStat(IStatPointObject):
+    def get_name(self) -> str:
+        return f"B Magnitude"
+
+    def get_datapoint(self, data: Data) -> float:
+        try:
+            return data.star.simbad['FLUX_B'].value.data[0]
         except Exception as e:
             raise e
 
@@ -47,11 +59,39 @@ class RMSPerOrbit(IStatPointObject):
         return np.sqrt(np.sum(ave_data.flux.value ** 2) / len(ave_data.flux))
 
 
+class Parallax(IStatPointObject):
+    def get_name(self) -> str:
+        return f"Parallax"
+
+    def get_datapoint(self, data: Data) -> float:
+        return data.star.parallax
+
+
+class Distance(IStatPointObject):
+    def get_name(self) -> str:
+        return f"Distance"
+
+    def get_datapoint(self, data: Data) -> float:
+        return data.star.distance
+
+
+class Magnitude(IStatPointObject):
+    def get_name(self) -> str:
+        return f"M_abs"
+
+    def get_datapoint(self, data: Data) -> float:
+        return data.star.M
+
+
 def getStatPointObjects() -> List[IStatPointObject]:
     return [
         VMagnitudeStat(),
         SpectraTypeStat(),
-        RMSPerOrbit()
+        RMSPerOrbit(),
+        Distance(),
+        Parallax(),
+        Magnitude(),
+        BMagnitudeStat()
     ]
 
 
