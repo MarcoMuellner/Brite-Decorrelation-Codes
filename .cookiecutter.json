@@ -1,0 +1,14 @@
+{
+  "_output_dir": "/Users/marco/Documents/code/science/Brite-Decorrelation-Codes-V2",
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Marco M\u00fcllner",
+  "copyright_year": "2022",
+  "development_status": "Development Status :: 4 - Beta",
+  "email": "muellnermarco@gmail.com",
+  "friendly_name": "Py-Brite-Decorrelation Codes",
+  "github_user": "marcomuellner",
+  "license": "MIT",
+  "package_name": "PyBriteDC",
+  "project_name": "PyBriteDC",
+  "version": "2.0.0"
+}

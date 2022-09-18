@@ -1,0 +1,23 @@
+Field: 01 Ori-I-2014
+Decorellations by Kamil Bicz
+Revised & corrected by Andrzej Pigulski
+
+Notes:
+HD31237 - OK.
+HD33111 - OK.
+HD34085 - RIGEL. OK, but the star is severely overexposed. DR2 data lack some parameters 
+          that would allow to account well for some instrumental effects.
+HD34503 - Option '--excl' used in BAb4 and UBr7 in the vicinity of the brightening (~720).
+HD35411 - OK.
+HD35468 - Moon effect in UBr7 - some data at the lowest Moon elongations removed.
+HD35715 - OK.
+HD36486 - OK.
+HD36861 - OK.
+HD37043 - Option '--excl' used in all three setups in the vicinity of the heartbeats.
+HD37128 - OK.
+HD37468 - OK.
+HD37742 - OK.
+HD38771 - OK.
+HD39801 - BETELGEUSE. Final part of UBr7 removed due to bad quality. The star is severely 
+          overexposed in the red filter (UBr7). DR2 data lack some parameters that would 
+          allow to account well for some instrumental effects.

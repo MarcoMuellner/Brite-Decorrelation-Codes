@@ -1,0 +1,125 @@
+### BRITE DECORRELATION TOOL - LOGFILE ###                         
+### Created with 'bride2.sh' - ver. 2.3.1 of 2021.08.11 
+### (c) 2021 by A. Pigulski, P. Mikolajczyk            
+
+### Created: 2021-09-17T18:54:37 UTC                   
+
+### STAR        : HD33111
+### FIELD       : 01-Ori-I-2013
+### SATELLITE   : BAb
+### SETUP       : 3
+### DR          : 2
+### MODE        : S
+### PHOT        : A
+### ALPHA       : 0.5
+
+### 'bride2.param' VALUES :
+# ALPHA_FIRST_PASS        : 0.05
+# REJECT_MIN_FRACTION     : 0.005
+# NO_REJECT_MAX_POINTS    : 100
+# NGRID                   : 100
+# DECOR_1D_SIGMA_start    : 0.1
+# DECOR_reject_first      : 1.0
+# DECOR_reject_second     : 0.3
+# DECOR_reject_third      : 0.1
+# DECOR_min_iters         : 7
+# DECOR_SIGMA             : 0.05
+# MIN_PTS_PER_ORBIT       : 6
+# BR_HARS_ITE_COEFF       : 0.7
+# NAP_coeff               : 400.0
+# BOR_coeff               : 1.7
+# MOON_dist_critical      : 20.0
+
+------------ ORIGINAL DATA ------------
+ SETUP          : 3
+ NSTACK         : 1
+ ROI X          : 2772
+ ROI Y          : 471
+ Exp. time [ms] : 1000
+ lc.data        : 12108
+ COLUMNS        : 7
+------------- MERGED DATA -------------
+ lc.orig2       : 12108
+----------- SPLITTING FILES -----------
+ lc.in          : 11985
+ lc.out         : 123
+------------ CUTTING DATA -------------
+  1 :    627.5620 -    702.8502 |  2 :      2.9111 -      2.9912
+  3 :     13.7584 -     23.7641 |  2 :      2.9119 -      2.9913
+  4 :      9.8107 -     17.0751 |  2 :      2.9116 -      2.9913
+  5 :     19.2866 -     39.0579 |  2 :      2.9111 -      2.9892
+ lc.data        : 11593
+---- OUTLIER REJECTION - 1st PASS -----
+ COLUMNS        : 6
+ Outliers found : 97
+ lc.orig2-out   : 11496
+-------- ADDING ORBITAL PHASE ---------
+ Orbital period : 0.06971435
+ PGAP           : 0.2986
+ lc.data        : 11496
+----------- FREQUENCY FILE ------------
+ 1 1
+ 22
+ 1
+-- ADDING SDevs & REM. SHORT ORBITS ---
+ lc.data        : 11496
+   <sig>:       7.3486
+   <sig_med>:       7.1487     32.2017      1.2798
+----------- DECORRELATIONS ------------
+ 1-D | NAP:  28 |  6 - mag | Var:  28.090 | SDEV: 0.00866 
+ 1-D | NAP:  42 |  4 - mag | Var:   6.675 | SDEV: 0.00769 
+ 1-D | NAP:  42 |  5 - mag | Var:   5.780 | SDEV: 0.00743 
+ 1-D | NAP:  28 |  7 - mag | Var:   3.766 | SDEV: 0.00719 
+ 1-D | NAP:  42 |  5 - mag | Var:   0.348 | SDEV: 0.00705 
+ Outliers found : 270
+ lc.out         : 11226
+ lc.r           : 270
+ Bad orbits     : 0
+ lc.data        : 11226
+ 1-D | NAP:  28 |  6 - mag | Var:   0.609 | SDEV: 0.00669 
+ 1-D | NAP:  42 |  4 - mag | Var:   0.451 | SDEV: 0.00668 
+ 1-D | NAP:  28 |  7 - mag | Var:   0.182 | SDEV: 0.00666 
+ 1-D | NAP:  42 |  5 - mag | Var:   0.203 | SDEV: 0.00665 
+ 2-D | Full review (sig: 0.36)
+                   4 -  5  | Var:   0.185 
+                   4 -  6  | Var:   0.248 
+                   5 -  6  | Var:   0.317 
+                   5 -  7  | Var:   0.086 
+ 2-D | sig: 0.4 |  5 -  6  | Var:   0.317 | SDEV: 0.00663 
+ 2-D | sig: 0.4 |  5 -  6  | Var:   0.317 | SDEV: 0.00662 
+ 2-D | sig: 0.4 |  4 -  6  | Var:   0.248 | SDEV: 0.00661 
+ 2-D | sig: 0.4 |  4 -  6  | Var:   0.227 | SDEV: 0.00661 
+ 2-D | sig: 0.4 |  5 -  6  | Var:   0.190 | SDEV: 0.00660 
+ 2-D | sig: 0.4 |  4 -  5  | Var:   0.185 | SDEV: 0.00660 
+ 2-D | sig: 0.4 |  4 -  5  | Var:   0.160 | SDEV: 0.00659 
+ Outliers found : 59
+ lc.out         : 11167
+ lc.r           : 59
+ Bad orbits     : 0
+ lc.data        : 11167
+ 2-D | sig: 0.4 |  4 -  6  | Var:   0.143 | SDEV: 0.00655 
+ 1-D | NAP:  40 |  5 - mag | Var:   0.116 | SDEV: 0.00655 
+ 2-D | sig: 0.4 |  4 -  5  | Var:   0.115 | SDEV: 0.00654 
+ 2-D | sig: 0.4 |  5 -  6  | Var:   0.114 | SDEV: 0.00654 
+ 2-D | sig: 0.4 |  4 -  6  | Var:   0.093 | SDEV: 0.00654 
+ 2-D | sig: 0.4 |  4 -  5  | Var:   0.090 | SDEV: 0.00654 
+ Outliers found : 30. Too few points to reject.
+ Bad orbits     : 0
+ lc.data        : 11167
+ 2-D | sig: 0.4 |  5 -  7  | Var:   0.086 | SDEV: 0.00654 
+ 2-D | sig: 0.4 |  5 -  6  | Var:   0.083 | SDEV: 0.00653 
+ 1-D | NAP:  40 |  4 - mag | Var:   0.070 | SDEV: 0.00653 
+ 2-D | sig: 0.4 |  4 -  5  | Var:   0.061 | SDEV: 0.00653 
+ 1-D | NAP:  27 |  6 - mag | Var:   0.058 | SDEV: 0.00653 
+ 1-D | NAP:  27 |  7 - mag | Var:   0.061 | SDEV: 0.00653 
+ Outliers found : 36. Too few points to reject.
+ Bad orbits     : 0
+ lc.data        : 11167
+ Resid. fitting : -0.0345702 (slope)
+ 2-D | Restricted review (sig: 0.36)
+--------------- FINISH ----------------
+ lc.data        : 11167
+ Iterations     : 31
+ Time elapsed   : 0 min 57 sec
+----------- SAVING RESULTS ------------
+ MAGOFF         : 2.9469 
