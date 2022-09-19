@@ -1,5 +1,6 @@
 import enum
-from typing import Union, List
+from typing import List
+from typing import Union
 
 from pydantic import BaseModel
 

@@ -1,8 +1,8 @@
-### BRITE DECORRELATION TOOL - LOGFILE ###                         
-### Created with 'bride2.sh' - ver. 2.3.1 of 2021.08.11 
-### (c) 2021 by A. Pigulski, P. Mikolajczyk            
+### BRITE DECORRELATION TOOL - LOGFILE ###
+### Created with 'bride2.sh' - ver. 2.3.1 of 2021.08.11
+### (c) 2021 by A. Pigulski, P. Mikolajczyk
 
-### Created: 2021-09-17T18:07:44 UTC                   
+### Created: 2021-09-17T18:07:44 UTC
 
 ### STAR        : HD31237
 ### FIELD       : 01-Ori-I-2013
@@ -66,47 +66,47 @@
    <sig>:       9.8580
    <sig_med>:       9.7586     37.9903      1.6045
 ----------- DECORRELATIONS ------------
- 1-D | NAP:  29 |  6 - mag | Var:  36.908 | SDEV: 0.01280 
- 1-D | NAP:  43 |  4 - mag | Var:   3.388 | SDEV: 0.01083 
- 1-D | NAP:  43 |  5 - mag | Var:   2.588 | SDEV: 0.01065 
- 1-D | NAP:  29 |  7 - mag | Var:   1.043 | SDEV: 0.01054 
- 1-D | NAP:  43 |  4 - mag | Var:   0.176 | SDEV: 0.01049 
+ 1-D | NAP:  29 |  6 - mag | Var:  36.908 | SDEV: 0.01280
+ 1-D | NAP:  43 |  4 - mag | Var:   3.388 | SDEV: 0.01083
+ 1-D | NAP:  43 |  5 - mag | Var:   2.588 | SDEV: 0.01065
+ 1-D | NAP:  29 |  7 - mag | Var:   1.043 | SDEV: 0.01054
+ 1-D | NAP:  43 |  4 - mag | Var:   0.176 | SDEV: 0.01049
  Outliers found : 251
  lc.out         : 11450
  lc.r           : 251
  Bad orbits     : 2
  lc.data        : 11398
- 1-D | NAP:  42 |  4 - mag | Var:   0.250 | SDEV: 0.00992 
- 1-D | NAP:  28 |  6 - mag | Var:   0.204 | SDEV: 0.00992 
- 1-D | NAP:  28 |  7 - mag | Var:   0.181 | SDEV: 0.00991 
- 1-D | NAP:  42 |  5 - mag | Var:   0.166 | SDEV: 0.00990 
+ 1-D | NAP:  42 |  4 - mag | Var:   0.250 | SDEV: 0.00992
+ 1-D | NAP:  28 |  6 - mag | Var:   0.204 | SDEV: 0.00992
+ 1-D | NAP:  28 |  7 - mag | Var:   0.181 | SDEV: 0.00991
+ 1-D | NAP:  42 |  5 - mag | Var:   0.166 | SDEV: 0.00990
  2-D | Full review (sig: 0.35)
-                   4 -  5  | Var:   0.289 
-                   4 -  6  | Var:   0.327 
-                   6 -  7  | Var:   0.056 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.327 | SDEV: 0.00988 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.327 | SDEV: 0.00986 
- 2-D | sig: 0.3 |  4 -  5  | Var:   0.289 | SDEV: 0.00985 
- 2-D | sig: 0.3 |  4 -  5  | Var:   0.292 | SDEV: 0.00984 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.237 | SDEV: 0.00982 
- 2-D | sig: 0.3 |  4 -  5  | Var:   0.209 | SDEV: 0.00982 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.180 | SDEV: 0.00981 
+                   4 -  5  | Var:   0.289
+                   4 -  6  | Var:   0.327
+                   6 -  7  | Var:   0.056
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.327 | SDEV: 0.00988
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.327 | SDEV: 0.00986
+ 2-D | sig: 0.3 |  4 -  5  | Var:   0.289 | SDEV: 0.00985
+ 2-D | sig: 0.3 |  4 -  5  | Var:   0.292 | SDEV: 0.00984
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.237 | SDEV: 0.00982
+ 2-D | sig: 0.3 |  4 -  5  | Var:   0.209 | SDEV: 0.00982
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.180 | SDEV: 0.00981
  Outliers found : 34. Too few points to reject.
  Bad orbits     : 1
  lc.data        : 11376
- 2-D | sig: 0.3 |  4 -  5  | Var:   0.151 | SDEV: 0.00978 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.132 | SDEV: 0.00977 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.117 | SDEV: 0.00976 
- 2-D | sig: 0.3 |  4 -  5  | Var:   0.114 | SDEV: 0.00976 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.082 | SDEV: 0.00975 
- 2-D | sig: 0.3 |  4 -  5  | Var:   0.080 | SDEV: 0.00975 
+ 2-D | sig: 0.3 |  4 -  5  | Var:   0.151 | SDEV: 0.00978
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.132 | SDEV: 0.00977
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.117 | SDEV: 0.00976
+ 2-D | sig: 0.3 |  4 -  5  | Var:   0.114 | SDEV: 0.00976
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.082 | SDEV: 0.00975
+ 2-D | sig: 0.3 |  4 -  5  | Var:   0.080 | SDEV: 0.00975
  Outliers found : 46. Too few points to reject.
  Bad orbits     : 0
  lc.data        : 11376
- 2-D | sig: 0.3 |  6 -  7  | Var:   0.056 | SDEV: 0.00975 
- 2-D | sig: 0.3 |  6 -  7  | Var:   0.062 | SDEV: 0.00974 
- 2-D | sig: 0.3 |  4 -  6  | Var:   0.055 | SDEV: 0.00974 
- 2-D | sig: 0.3 |  4 -  5  | Var:   0.052 | SDEV: 0.00973 
+ 2-D | sig: 0.3 |  6 -  7  | Var:   0.056 | SDEV: 0.00975
+ 2-D | sig: 0.3 |  6 -  7  | Var:   0.062 | SDEV: 0.00974
+ 2-D | sig: 0.3 |  4 -  6  | Var:   0.055 | SDEV: 0.00974
+ 2-D | sig: 0.3 |  4 -  5  | Var:   0.052 | SDEV: 0.00973
  Resid. fitting : 0.0801792 (slope)
  2-D | Restricted review (sig: 0.35)
 --------------- FINISH ----------------
@@ -114,4 +114,4 @@
  Iterations     : 29
  Time elapsed   : 2 min 7 sec
 ----------- SAVING RESULTS ------------
- MAGOFF         : 3.5599 
+ MAGOFF         : 3.5599

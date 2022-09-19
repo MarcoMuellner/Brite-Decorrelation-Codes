@@ -1,14 +1,14 @@
 from typing import Callable
 
 import numpy as np
-from astropy.stats import LombScargle
 from astropy import units as u
-from lightkurve.periodogram import Periodogram # type: ignore
+from astropy.stats import LombScargle
 from astropy.units import cds
+from lightkurve.periodogram import Periodogram  # type: ignore
 
 
-def lightcurve_check(func: Callable) -> Callable: # type: ignore
-    def wrapper(*args, **kwargs): # type: ignore
+def lightcurve_check(func: Callable) -> Callable:  # type: ignore
+    def wrapper(*args, **kwargs):  # type: ignore
         # Check the dimensions of the lightcurve
         if args[0].ndim != 2:
             raise ValueError("The lightcurve must be a 2D array")
@@ -23,8 +23,12 @@ def lightcurve_check(func: Callable) -> Callable: # type: ignore
 
 
 @lightcurve_check
-def periodogram(lightcurve: np.ndarray, minimum_frequency: int = 0, maximum_frequency: int = 10, # type: ignore
-                **kwargs) -> Periodogram:
+def periodogram(
+    lightcurve: np.ndarray,
+    minimum_frequency: int = 0,
+    maximum_frequency: int = 10,  # type: ignore
+    **kwargs
+) -> Periodogram:
     """
     Calculates the periodogram of a given lightcurve with proper normalization. The periodogram is calculated using the
     Lomb-Scargle algorithm.
@@ -35,10 +39,15 @@ def periodogram(lightcurve: np.ndarray, minimum_frequency: int = 0, maximum_freq
     :return: The periodogram of the lightcurve.
     """
     nyquist = 1 / (2 * np.median(np.diff(lightcurve[:, 0])))
-    ls = LombScargle(lightcurve[:, 0], lightcurve[:, 1], normalization='psd')
+    ls = LombScargle(lightcurve[:, 0], lightcurve[:, 1], normalization="psd")
 
-    f, p = ls.autopower(minimum_frequency=minimum_frequency, maximum_frequency=maximum_frequency, nyquist_factor=1,
-                        samples_per_peak=10, **kwargs)
+    f, p = ls.autopower(
+        minimum_frequency=minimum_frequency,
+        maximum_frequency=maximum_frequency,
+        nyquist_factor=1,
+        samples_per_peak=10,
+        **kwargs
+    )
 
     p = np.sqrt(4 / len(lightcurve[:, 0])) * np.sqrt(p)
 
@@ -50,7 +59,7 @@ def periodogram(lightcurve: np.ndarray, minimum_frequency: int = 0, maximum_freq
 
 
 @lightcurve_check
-def calculate_rms(lightcurve: np.ndarray) -> float: # type: ignore
+def calculate_rms(lightcurve: np.ndarray) -> float:  # type: ignore
     """
     Calculates the RMS of a given lightcurve. The RMS is calculated by taking the square root of the sum of the squared
     values of the lightcurve divided by the number of data points in the lightcurve.
@@ -60,11 +69,11 @@ def calculate_rms(lightcurve: np.ndarray) -> float: # type: ignore
     mmag_flag = np.median(lightcurve[:, 1] - np.amin(lightcurve[:, 1])) > 100
     flux = lightcurve[:, 1] - np.median(lightcurve[:, 1])
     flux = flux / 1000 if mmag_flag else flux
-    return np.sqrt(np.sum(flux ** 2) / len(lightcurve[:, 1]))
+    return np.sqrt(np.sum(flux**2) / len(lightcurve[:, 1]))
 
 
 @lightcurve_check
-def calculate_ptp_scatter(lightcurve: np.ndarray) -> float: # type: ignore
+def calculate_ptp_scatter(lightcurve: np.ndarray) -> float:  # type: ignore
     """
     Calculates the ptp scatter of a given lightcurve. The ptp scatter is calculated by taking the square root of the
     sum of the difference between the n and n+1th point to the power of 2, divided by the number of data points
@@ -72,7 +81,10 @@ def calculate_ptp_scatter(lightcurve: np.ndarray) -> float: # type: ignore
     :param lightcurve: The lightcurve to calculate the ptp scatter of. Dimensions: (n, 2)
     :return: The ptp scatter of the lightcurve
     """
-    return np.sqrt(np.sum((lightcurve[1:, 1] - lightcurve[:-1, 1]) ** 2) / (len(lightcurve[:, 1]) - 1))
+    return np.sqrt(
+        np.sum((lightcurve[1:, 1] - lightcurve[:-1, 1]) ** 2)
+        / (len(lightcurve[:, 1]) - 1)
+    )
 
 
 @lightcurve_check

@@ -2,13 +2,15 @@ from typing import List
 
 import numpy as np
 from pydantic import BaseModel
-from PyBriteDC.models import file as mf, objects as mo
+
+from PyBriteDC.models import file as mf
+from PyBriteDC.models import objects as mo
 
 
 class MergedSingleObservationRaw(mo.SingleObservation):
-    ndat_data: np.ndarray # type: ignore
-    ave_data: np.ndarray # type: ignore
-    orig_data: np.ndarray # type: ignore
+    ndat_data: np.ndarray  # type: ignore
+    ave_data: np.ndarray  # type: ignore
+    orig_data: np.ndarray  # type: ignore
 
     class Config:
         arbitrary_types_allowed = True
